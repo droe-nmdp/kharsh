@@ -1,0 +1,678 @@
+i=0, pos=468, variantList=C=-1,G=1
+i=1, pos=601, variantList=G=-1,A=1
+i=2, pos=728, variantList=T=-1,C=1
+i=3, pos=762, variantList=C=-1,T=1
+i=4, pos=765, variantList=.=1,GTATGCT=4,GTAT=64,G=65
+i=5, pos=766, variantList=T=-1,.=1,C=2,GCTC=62,G=63
+i=6, pos=767, variantList=.=1,AGCCCTCTGTTTT=10,A=11
+i=7, pos=768, variantList=.=1,GTAT=7,GCCC=25,G=26
+i=8, pos=770, variantList=A=-1,.=1,C=2,T=3
+i=9, pos=771, variantList=.=1,TATG=15,C=16,T=17
+i=10, pos=1192, variantList=G=-1,C=1
+i=11, pos=2471, variantList=A=-1,G=1
+i=12, pos=2789, variantList=C=-1,G=1
+i=13, pos=3395, variantList=T=-1,C=1
+i=14, pos=3420, variantList=T=-1,C=1
+i=15, pos=3903, variantList=A=-1,T=1,.=2
+i=16, pos=4377, variantList=C=-1,A=1
+i=17, pos=4472, variantList=C=-1,T=1
+i=18, pos=4738, variantList=CTAGTTATTAATCCCATCT=-1,C=1
+i=19, pos=5481, variantList=G=-1,A=1
+i=20, pos=6799, variantList=G=-1,A=1
+i=21, pos=7287, variantList=C=-1,G=1
+i=22, pos=7303, variantList=C=-1,G=1
+i=23, pos=7346, variantList=T=-1,A=1
+i=24, pos=7371, variantList=G=-1,C=1
+i=25, pos=7392, variantList=C=-1,T=1
+i=26, pos=7926, variantList=A=-1,G=1
+i=27, pos=8295, variantList=G=-1,C=1
+i=28, pos=10444, variantList=G=-1,C=1,.=2
+i=29, pos=10445, variantList=A=1,.GA=1492,.=1493,GA=1501
+30 positions in initial variantMap
+warning: KIR:KIR00021, 765, 65
+warning: KIR:KIR00021, 766, 63
+warning: KIR:KIR00021, 767, 11
+warning: KIR:KIR00021, 768, 26
+warning: KIR:KIR00021, 770, 2
+warning: KIR:KIR00021, 771, 17
+warning: KIR:KIR00021, 10445, 1502
+warning: KIR:KIR00424, 765, 65
+warning: KIR:KIR00424, 766, 63
+warning: KIR:KIR00424, 767, 11
+warning: KIR:KIR00424, 768, 26
+warning: KIR:KIR00424, 770, 2
+warning: KIR:KIR00424, 771, 17
+warning: KIR:KIR00424, 10445, 1502
+warning: KIR:KIR00420, 765, 65
+warning: KIR:KIR00420, 766, 63
+warning: KIR:KIR00420, 767, 11
+warning: KIR:KIR00420, 768, 26
+warning: KIR:KIR00420, 770, 2
+warning: KIR:KIR00420, 771, 17
+warning: KIR:KIR00420, 10445, 1502
+warning: KIR:KIR00421, 765, 65
+warning: KIR:KIR00421, 766, 63
+warning: KIR:KIR00421, 767, 11
+warning: KIR:KIR00421, 768, 26
+warning: KIR:KIR00421, 770, 2
+warning: KIR:KIR00421, 771, 17
+warning: KIR:KIR00421, 10445, 1502
+warning: KIR:KIR00422, 765, 65
+warning: KIR:KIR00422, 766, 63
+warning: KIR:KIR00422, 767, 11
+warning: KIR:KIR00422, 768, 26
+warning: KIR:KIR00422, 770, 2
+warning: KIR:KIR00422, 771, 17
+warning: KIR:KIR00422, 10445, 1502
+warning: KIR:KIR00423, 765, 65
+warning: KIR:KIR00423, 766, 63
+warning: KIR:KIR00423, 767, 11
+warning: KIR:KIR00423, 768, 26
+warning: KIR:KIR00423, 770, 2
+warning: KIR:KIR00423, 771, 17
+warning: KIR:KIR00423, 10445, 1502
+warning: KIR:KIR00425, 765, 65
+warning: KIR:KIR00425, 766, 63
+warning: KIR:KIR00425, 767, 11
+warning: KIR:KIR00425, 768, 26
+warning: KIR:KIR00425, 770, 2
+warning: KIR:KIR00425, 771, 17
+warning: KIR:KIR00425, 10445, 1502
+warning: KIR:KIR00620, 765, 65
+warning: KIR:KIR00620, 766, 63
+warning: KIR:KIR00620, 767, 11
+warning: KIR:KIR00620, 768, 26
+warning: KIR:KIR00620, 770, 2
+warning: KIR:KIR00620, 771, 17
+warning: KIR:KIR00620, 10445, 1502
+warning: KIR:KIR00113, 765, 65
+warning: KIR:KIR00113, 766, 63
+warning: KIR:KIR00113, 767, 11
+warning: KIR:KIR00113, 768, 26
+warning: KIR:KIR00113, 770, 2
+warning: KIR:KIR00113, 771, 17
+warning: KIR:KIR00113, 10444, 2
+warning: KIR:KIR00113, 10445, 1493
+warning: KIR:KIR00113, 10445, 1493
+warning: KIR:KIR00113, 10445, 1493
+warning: KIR:KIR00026, 765, 65
+warning: KIR:KIR00026, 766, 63
+warning: KIR:KIR00026, 767, 11
+warning: KIR:KIR00026, 768, 26
+warning: KIR:KIR00026, 770, 2
+warning: KIR:KIR00026, 771, 17
+warning: KIR:KIR00026, 10445, 1502
+warning: KIR:KIR00130, 728, 2
+warning: KIR:KIR00130, 762, 2
+warning: KIR:KIR00130, 765, 65
+warning: KIR:KIR00130, 766, 63
+warning: KIR:KIR00130, 767, 11
+warning: KIR:KIR00130, 768, 26
+warning: KIR:KIR00130, 770, 2
+warning: KIR:KIR00130, 771, 17
+warning: KIR:KIR00130, 10445, 1502
+warning: KIR:KIR00437, 728, 2
+warning: KIR:KIR00437, 762, 2
+warning: KIR:KIR00437, 765, 65
+warning: KIR:KIR00437, 766, 63
+warning: KIR:KIR00437, 767, 11
+warning: KIR:KIR00437, 768, 26
+warning: KIR:KIR00437, 770, 2
+warning: KIR:KIR00437, 771, 17
+warning: KIR:KIR00437, 7303, 2
+warning: KIR:KIR00437, 10444, 2
+warning: KIR:KIR00437, 10445, 1502
+warning: KIR:KIR00437, 10445, 1502
+warning: KIR:KIR00437, 10445, 1493
+warning: KIR:KIR00647, 728, 2
+warning: KIR:KIR00647, 762, 2
+warning: KIR:KIR00647, 765, 65
+warning: KIR:KIR00647, 766, 63
+warning: KIR:KIR00647, 767, 11
+warning: KIR:KIR00647, 768, 26
+warning: KIR:KIR00647, 770, 2
+warning: KIR:KIR00647, 771, 17
+warning: KIR:KIR00647, 7303, 2
+warning: KIR:KIR00647, 10444, 2
+warning: KIR:KIR00647, 10445, 1502
+warning: KIR:KIR00647, 10445, 1502
+warning: KIR:KIR00647, 10445, 1493
+warning: KIR:KIR00109, 765, 65
+warning: KIR:KIR00109, 766, 63
+warning: KIR:KIR00109, 767, 11
+warning: KIR:KIR00109, 768, 26
+warning: KIR:KIR00109, 770, 2
+warning: KIR:KIR00109, 771, 17
+warning: KIR:KIR00109, 10444, 2
+warning: KIR:KIR00109, 10445, 1502
+warning: KIR:KIR00109, 10445, 1502
+warning: KIR:KIR00109, 10445, 1493
+warning: KIR:KIR00436, 765, 65
+warning: KIR:KIR00436, 766, 63
+warning: KIR:KIR00436, 767, 11
+warning: KIR:KIR00436, 768, 26
+warning: KIR:KIR00436, 770, 2
+warning: KIR:KIR00436, 771, 17
+warning: KIR:KIR00436, 10444, 2
+warning: KIR:KIR00436, 10445, 1502
+warning: KIR:KIR00436, 10445, 1502
+warning: KIR:KIR00436, 10445, 1493
+warning: KIR:KIR00112, 765, 65
+warning: KIR:KIR00112, 766, 63
+warning: KIR:KIR00112, 767, 11
+warning: KIR:KIR00112, 768, 26
+warning: KIR:KIR00112, 770, 2
+warning: KIR:KIR00112, 771, 17
+warning: KIR:KIR00112, 10445, 1502
+warning: KIR:KIR00111, 728, 2
+warning: KIR:KIR00111, 762, 2
+warning: KIR:KIR00111, 765, 65
+warning: KIR:KIR00111, 766, 63
+warning: KIR:KIR00111, 767, 11
+warning: KIR:KIR00111, 768, 26
+warning: KIR:KIR00111, 770, 2
+warning: KIR:KIR00111, 771, 17
+warning: KIR:KIR00111, 7303, 2
+warning: KIR:KIR00111, 10444, 2
+warning: KIR:KIR00111, 10445, 1502
+warning: KIR:KIR00111, 10445, 1502
+warning: KIR:KIR00111, 10445, 1493
+warning: KIR:KIR00115, 765, 65
+warning: KIR:KIR00115, 766, 63
+warning: KIR:KIR00115, 767, 11
+warning: KIR:KIR00115, 768, 26
+warning: KIR:KIR00115, 770, 2
+warning: KIR:KIR00115, 771, 17
+warning: KIR:KIR00115, 10445, 1502
+warning: KIR:KIR00119, 765, 65
+warning: KIR:KIR00119, 766, 63
+warning: KIR:KIR00119, 767, 11
+warning: KIR:KIR00119, 768, 26
+warning: KIR:KIR00119, 770, 2
+warning: KIR:KIR00119, 771, 17
+warning: KIR:KIR00119, 10445, 1502
+warning: KIR:KIR00116, 765, 65
+warning: KIR:KIR00116, 766, 63
+warning: KIR:KIR00116, 767, 11
+warning: KIR:KIR00116, 768, 26
+warning: KIR:KIR00116, 770, 2
+warning: KIR:KIR00116, 771, 17
+warning: KIR:KIR00116, 10444, 2
+warning: KIR:KIR00116, 10445, 1502
+warning: KIR:KIR00116, 10445, 1502
+warning: KIR:KIR00116, 10445, 1493
+warning: KIR:KIR00114, 728, 2
+warning: KIR:KIR00114, 762, 2
+warning: KIR:KIR00114, 765, 65
+warning: KIR:KIR00114, 766, 63
+warning: KIR:KIR00114, 767, 11
+warning: KIR:KIR00114, 768, 26
+warning: KIR:KIR00114, 770, 2
+warning: KIR:KIR00114, 771, 17
+warning: KIR:KIR00114, 10445, 1502
+warning: KIR:KIR00117, 728, 2
+warning: KIR:KIR00117, 762, 2
+warning: KIR:KIR00117, 765, 65
+warning: KIR:KIR00117, 766, 63
+warning: KIR:KIR00117, 767, 11
+warning: KIR:KIR00117, 768, 26
+warning: KIR:KIR00117, 770, 2
+warning: KIR:KIR00117, 771, 17
+warning: KIR:KIR00117, 10444, 2
+warning: KIR:KIR00117, 10445, 1502
+warning: KIR:KIR00117, 10445, 1502
+warning: KIR:KIR00117, 10445, 1493
+warning: KIR:KIR00118, 728, 2
+warning: KIR:KIR00118, 762, 2
+warning: KIR:KIR00118, 765, 65
+warning: KIR:KIR00118, 766, 63
+warning: KIR:KIR00118, 767, 11
+warning: KIR:KIR00118, 768, 26
+warning: KIR:KIR00118, 770, 2
+warning: KIR:KIR00118, 771, 17
+warning: KIR:KIR00118, 10444, 2
+warning: KIR:KIR00118, 10445, 1502
+warning: KIR:KIR00118, 10445, 1502
+warning: KIR:KIR00118, 10445, 1493
+done with reads
+19 intersect SNPs
+23 rows
+value=1
+value=-1
+value=-1
+value=1
+value=1
+value=-1
+value=-1
+value=1
+value=-1
+value=1
+value=1
+value=1
+value=-1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=-1
+value=1
+value=1
+value=1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=1
+value=1
+value=1
+value=-1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=-1
+value=-1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=1
+value=-1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=-1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=-1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=-1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=-1
+value=-1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=1
+value=1
+value=-1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=-1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=-1
+value=1
+value=1
+value=1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=1
+value=1
+value=1
+value=-1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=-1
+value=-1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=-1
+value=1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=-1
+value=-1
+value=1
+value=-1
+value=1
+value=-1
+value=1
+value=1
+value=-1
+value=1
+value=1
+value=-1
+value=-1
+value=1
+value=-1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=-1
+value=1
+value=-1
+value=1
+value=-1
+value=1
+value=-1
+value=1
+value=1
+value=-1
+value=1
+value=1
+value=-1
+value=-1
+value=1
+value=-1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=-1
+value=1
+value=-1
+value=1
+value=1
+value=1
+value=-1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=-1
+value=-1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=1
+value=-1
+done. 252130 reads/sites, 23 reads in matrixCombined
+19 snps in matrixCombined
+outputing matrixCombined...
+done
+outputVariantMap: columns=[468, 601, 1192, 2471, 2789, 3395, 3420, 3903, 4377, 4472, 5481, 6799, 7287, 7303, 7346, 7371, 7392, 7926, 8295]

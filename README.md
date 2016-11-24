@@ -1,2 +1,2 @@
 # kharsh
-HASH KIR (and more)
+HARSH KIR (and more)

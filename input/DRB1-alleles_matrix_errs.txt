@@ -1,0 +1,8 @@
+loading input file (read variants) ...
+done with reads
+16123 intersect SNPs
+27 rows
+done. 427877 reads/sites, 27 reads in matrixCombined
+13216 snps in matrixCombined
+outputing matrixCombined...
+done
