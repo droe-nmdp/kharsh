@@ -5,11 +5,11 @@ package org.nmdp.ngs.kharsh
  * the edge-potential function with three outcomes depending on 
  * if the read is the opposite of a predicted haplotype.
  *
- * r is the current assignment of the read relative to haplotype {-1,1}.
+ * This assumes the reads have been assigned to the *other* haplotype.
  *
- * rj indicates one allele (1) or another (-1) in a read.
+ * x indicates an allele value in a read
  *
- * hi indicates one allele (1) or another (-1) in an estimated haplotype.
+ * hi indicates an allele value in a haplotype.
  *
  * @author Dave Roe
  * @version $Id: NuScript.groovy 24974 2015-08-17 00:08:37Z droe $
@@ -18,17 +18,16 @@ package org.nmdp.ngs.kharsh
 class NuScript {
     static err = System.err
     static int debugging = 5
-    static Double Nu(int r, int j, int h, Double epsilon) {
+
+    static Double Nu(int x, int h, Double epsilon) {
         if(debugging <= 1) { 
-            err.println "Nu(j=${j}, h=${h}, epsilon=${epsilon}"
+            err.println "Nu(x=${x}, h=${h}, epsilon=${epsilon}"
         }
         Double ret = 0.0
-        if ((r == 1) && (j == h)) { 
+        if (x == h) { 
             ret = ret + Math.log(epsilon)
-        } else if ((r == 1) && (j != h)) {  
+        } else {  
             ret = ret + Math.log(1 - epsilon)
-        } else { // r == -1
-            ret = 0
         }
 
         if(debugging <= 1) { 

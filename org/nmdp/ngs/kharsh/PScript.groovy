@@ -20,7 +20,7 @@ package org.nmdp.ngs.kharsh
  *
  * X is a N by M matrix computed from the read alignment against the reference. 
  * X_ij =0 (unobserved SNP), 1 (major allele), -1 (minor allele). 
- *   Rows are the N reads(j), columns are the N SNPs(i).
+ *   Rows are the reads(j), columns are the variants(i).
  *
  * mu represents the 'heat' of the model
  * epsilon represents the sequencing error rate; must be > 0.0
@@ -31,6 +31,9 @@ package org.nmdp.ngs.kharsh
  * equal 1.
  *
  * Return a probability, where mu and epsilon are two parameters. 
+ * e.g, exp(200) = very large number
+ *      exp(2) = 7
+ *      exp(0.2) = 1.22
  *
  * @author Dave Roe
  * @version $Id: PScript.groovy 22962 2015-06-08 00:49:45Z droe $
@@ -39,56 +42,56 @@ package org.nmdp.ngs.kharsh
 
 class PScript {
     static err = System.err
-    static int debugging = 3
+    static int debugging = 1
     
-    static Double P(int[] R, int[][] H, int[] S1, int[] S2, ArrayList SI1,
+    static Double P(int[][] H, int[] R, int[] S1, int[] S2, ArrayList SI1,
                    ArrayList SI2, Integer numRefHaps, int[][] X, Double mu, 
                    Double epsilon, Double omega, Double rho, Double Z) {
         if(debugging <= 1) {
-            err.println "P()"
+            err.println "P(Z=${Z})"
         }
 
         int[] H1 = H[0]
         int[] H2 = H[1]
-        Integer N = X.size()   // number of reads
-        Double thetaSum = 0.0;
-        // left off(todo): make like Alg 2
-        (0..N-1).each { rIndex ->        // each of the N reads
-            int[] xi = X[rIndex] // get the row vector for read at index rIndex
-            thetaSum += PFRScript.PFR(H, X, R, rIndex, mu, epsilon)
-        } // each read
-        
-        //start old
-        int[] Rp = R.collect { it * 1 } 
-        
-        // H1 and S1
-        int[] xi = []
-        int rj = 0
-        Double thetaSumH1 = ThetaSumReadsScript.ThetaSumReads(xi, X, rj, Rp, H1,
-                                                             epsilon)
-        Double nuSumH1 = NuSumReadsScript.NuSumReads(xi, X, rj, Rp, H1, epsilon)
-        Double epsilonH1S1 = EpsilonSumScript.EpsilonSum(H1, S1, omega)
-        Double tauSumS1 = TauSumScript.TauSum(SI1, numRefHaps, rho)
+        int[] hMarkers = [-1, 1] // -1 = H1, 1 = H2
+        Integer N = R.size()   // number of reads
+        Double sum = 0.0
 
-        // H2 and S2
-        Double thetaSumH2 = ThetaSumReadsScript.ThetaSumReads(xi, X, rj, R, H2, 
-                                                             epsilon)
-        Double nuSumH2 = NuSumReadsScript.NuSumReads(xi, X, rj, R, H2, epsilon)
-        Double epsilonH2S2 = EpsilonSumScript.EpsilonSum(H2, S2, omega)
-        Double tauSumS2 = TauSumScript.TauSum(SI2, numRefHaps, rho)
-    
-        Double sum = thetaSumH1 + nuSumH1 + epsilonH1S1 + tauSumS1 + thetaSumH2 + 
-                    nuSumH2 + epsilonH2S2 + tauSumS2
-        if(debugging <= 2) {
-            err.println "P: ${thetaSumH1}, ${nuSumH1}, ${epsilonH1S1}, ${tauSumS1}, " +
-                "${thetaSumH2}, ${nuSumH2}, ${epsilonH2S2}, ${tauSumS2}"
-            err.println String.sprintf("P: sum=%1.9f", sum)
+        // theta and nu for both haplotypes
+        (0..N-1).each { rIndex ->        // each of the N reads
+            // current haplotype assign for read
+            int rHIndex = hMarkers.findIndexOf{ it == R[rIndex] }
+            Double prob = PFRScript.PFR(H, rHIndex, X, rIndex, epsilon)
+            sum += prob
+        } // each read
+        if(debugging <= 3) {
+            err.println String.sprintf("P: after reads, sum=%1.9f", sum)
         }
-        Double prob = (1/Z) * (Math.exp(mu * sum))
+        
+        // epsilon for both haplotypes
+        Double epsilonH1S1 = EpsilonSumScript.EpsilonSum(H1, S1, omega)
+        Double epsilonH2S2 = EpsilonSumScript.EpsilonSum(H2, S2, omega)
+        Double tauSumS1 = TauSumScript.TauSum(SI1, numRefHaps, rho)
+        Double tauSumS2 = TauSumScript.TauSum(SI2, numRefHaps, rho)
+
+        // the sum should be positive, substracted by epsilon sum,
+        // and then added by tauSum
+        // todo: start with matches from the start (left off)
+        sum += epsilonH1S1 + tauSumS1 + epsilonH2S2 + tauSumS2
+        Double muVal = Math.exp(mu * sum)
+        if(debugging <= 3) {
+            err.println "P: ${epsilonH1S1}, ${tauSumS1}, " +
+                "${epsilonH2S2}, ${tauSumS2}"
+            err.println String.sprintf("P: sum=%1.9f", sum)
+            err.println String.sprintf("P: muVal=%1.9f", muVal)
+        }
+
+        Double prob = 1/Z * muVal
                     
         if(debugging <= 1) {
             err.println String.sprintf("P: return %1.9f", prob)
         }
         return prob
+        System.exit(0) //todo(left off)
     } // P
 } // PScript

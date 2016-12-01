@@ -2,7 +2,7 @@ package org.nmdp.ngs.kharsh
 
 /*
  * Sample reference haplotype on fixed read origins and predicted haplotype.
- * Equation 9 from the HARSH paper.
+ * P(S|H): equation 9 from the HARSH paper.
  *
  * Also, see Figure 15.4 in algorithms.pdf.
  * http://aima.cs.berkeley.edu/
@@ -28,13 +28,14 @@ package org.nmdp.ngs.kharsh
 
 class PFSScript {
     static err = System.err
-    static int debugging = 4 // higher value means more logging
-        
+    static int debugging = 2 // higher value means more logging
+
     static ArrayList PFS(int[] H, int[][] S, Double omega, Double rho) {
         if(debugging <= 3) {
             err.println "PFS()"
-            err.println "H=${H}"
-            //err.println "S=${S}"
+            err.println "H size = ${H.length}"
+            err.println "S size = ${S.length} rows/reads x " +
+                "${S[1].length} columns/variants"
         }
 
         int N = S.length // number of reference haplotypes
@@ -82,13 +83,15 @@ class PFSScript {
         if(debugging <= 2) { 
             err.println "ref hap ${sIdx}=" + S[sIdx]
             err.println "forward ${sIdx}=" + forward[sIdx]
-            err.println "prob ${sIdx}=" + probabilitySampler.getProbability(sIdx)
         }
 
         // forward score is sum of emission scores per ref hap (N of them)
         (1..L-1).each { si -> // each variant index
             int siSNP = H[si]
             (0..N-1).each { ri -> // each reference haplotype (row index)
+                if(debugging <= 2) {
+                    err.println "PFS: si=${si}, ri=${ri}"
+                }
                 // get the previous V value for this haplotype at the previous SNP
                 Double Vminus1 = probabilitySampler.getProbability(ri)
                 // tau: switch score this reference haplotype relative to the one

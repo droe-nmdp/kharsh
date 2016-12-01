@@ -22,13 +22,12 @@ package org.nmdp.ngs.kharsh
  *
  * X is a N by M matrix computed from the read alignments against the reference. 
  * X_ij =0 (no variant), -1 (first variant), 1 (second variant). 
- *   Rows are the N reads(i), columns are the M variants(j).
- * xj is one row (i.e., read) from X that spans one or more variants (j).
+ *   columns are the M variants(i), rows are the N reads(j).
  *
- * h is one o two predicted haplotypes {-1,1}.
- *
- * rj is the current assignment of the read relative to haplotype {-1,1}.
- *
+ * indexes is the indexes of the reads assigned to this haplotype
+ * xj is one row (i.e., read) from X that spans one or more variants (i).
+ * H is a predicted haplotype
+ * S is a reference haplotype
  * epsilon represents the sequencing error rate; must be > 0.0
  *
  * @author Dave Roe
@@ -38,20 +37,19 @@ package org.nmdp.ngs.kharsh
 
 class ThetaSumReadsScript {
     static err = System.err
-    static int debugging = 6
+    static int debugging = 1
     
-    static Double ThetaSumReads(int[] xi, int[] H, int rj, Double epsilon) {
+    static Double ThetaSumReads(int[] indexes, int[] xj, int[] H,
+                                Double epsilon) {
         if(debugging <= 1) {
-            err.println "ThetaSumReads()"
+            err.println "ThetaSumReads(${indexes.size()} indexes, xj=${xj})"
         }
-        Double sum = 0.0
-        // find all the non-zero indexes
-        def varIndexes = xi.findIndexValues { it != 0 }
 
-        varIndexes.each { i ->
-            int hi = H[i]
-            int j = xi[i]
-            sum = ThetaScript.Theta(rj, j, hi, Epsilon)
+        Double sum = 0.0
+        indexes.each { j ->
+            int xjVal = xj[j]
+            int hjVal = H[j]
+            sum += ThetaScript.Theta(xjVal, hjVal, epsilon)
         }
 
         if(debugging <= 1) {

@@ -12,7 +12,7 @@ import org.nmdp.research.bio.util.CsvFileReader
 import java.io.*;
 
 class IOScript {
-    static Integer debugging = 4
+    static Integer debugging = 1
     static err = System.err
 
     /*
@@ -108,9 +108,9 @@ class IOScript {
             }
             alleleNames.add(alleleRow[""])
             commonSnpIndexes.eachWithIndex { snpLocation, idx ->
-                //err.println "snpLocation=${snpLocation}" //todo
+                //err.println "snpLocation=${snpLocation}" //todo(remove)
                 def cell = alleleRow[snpLocation.toString()]
-                //err.println "cell=${cell}" //todo
+                //err.println "cell=${cell}" //todo(remove)
                 if((cell != null) && (cell != "")) {
                     if(debugging <= 2) { 
                         err.println "processMatrix: adding S[${rowIndex}][${idx}] = " +
@@ -128,11 +128,13 @@ class IOScript {
             }
         } // each row in the reference allele matrix file
         err.println "done."
-        err.println "S[0][0]=${S[0][0]}"  // todo
+        //err.println "S[0][0]=${S[0][0]}"  // todo(remove)
+        //err.println "S=${S}"  // todo(remove)
 
         if(debugging <= 1) {
             err.println "LoadMatrix: return"
         }
+
         return [X, readNames, S, alleleNames, commonSnpIndexes]
     } // LoadMatrix
 

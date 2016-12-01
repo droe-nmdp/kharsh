@@ -32,14 +32,16 @@ class Algorithm2Script {
         Integer N = X.size()   // number of reads
         Integer M = X[0].size()   // number of SNPs
         // Z is a normalization constant to ensure the sum of P() for all R, H
-        // equal 1
-        Double Z = 1 //TODO
+        // equal 1. Since the equations  are 1/Z * exp(..), the exp() has to
+        // be part of the normalization.
+        Double Z = Math.exp(1) * N
         Integer burnInRounds = 1 // todo: use a coverage calculation here(?)    
         // probabilites for each read
         int[] rProbs = new int[N]
 
         // Step 1: Randomly initialize haplotype H to SNPs 1 or -1
         // and randomly initialize read assignment to 1 or -1.
+        // It is assumed that H[0] goes with S[0] and same with index 1s.
         int[][] H
         int[][] returnH
         int[] R
@@ -51,8 +53,9 @@ class Algorithm2Script {
         ArrayList sampledS, sampledSI
         (sampledS, sampledSI) = Algorithm2InitRefs(S, M)
 
-        def H1 = H[0];             def H2 = H[1]
-        def hMarkers[] = [-1, 1] // -1 = H1, 1 = H2
+        def H1 = H[0];             def H2 = H[1];
+        // the marker for H1 and H2 (e.g., -1 and 1) used in R
+        int[] hMarkers = [-1, 1] // -1 = H1, 1 = H2
         def S1 = sampledS.get(0);      def S2 = sampledS.get(1)
         def SI1 = sampledSI.get(0);    def SI2 = sampledSI.get(1)
         double[] sampledScores = new double[2]
@@ -60,11 +63,12 @@ class Algorithm2Script {
         int i = 0 // index for number of rounds
         boolean converged = false
         Double pPrevious = 0 // overall probability from the previous round
-        Double p = PScript.P(R, S1, S2, SI1, SI2, S.size(), X, mu, 
+        Double p = PScript.P(H, R, S1, S2, SI1, SI2, S.size(), X, mu, 
                              epsilon, omega, rho, Z)
         Double returnP=p
         if(debugging <= 3) {
             err.println String.sprintf("Algorithm2: after init, p=%1.5f\n", p)
+            err.println "Algorithm2: Z=${Z}"
         }
         ArrayList pList = new ArrayList() // history of the overall probability
         pList.add(p)
@@ -78,24 +82,24 @@ class Algorithm2Script {
             }
             // Step 2: For fixed haplotype H, sample read origin R
             // see equation 6
-            (0..1).each { chromosome ->
-                (0..N-1).each { rIndex ->        // each of the N reads
-                    Double prob = PFRScript.PFR(H, Hmarkers, chromosome, X,
-                                                R, rIndex, mu, epsilon)
-                    Double r = (Double)Math.random()
-                    if(debugging <= 2) {
-                        err.println "after PFR: rIndex=${rIndex}, " +
-                            "prob=${prob}, r=${r}"
-                    }
-                    if(prob > r) { 
-                        R[rIndex] = Hmarkers[chromosome]
-                    } else {
-                        otherChromosome = chromosome * -1 + 1
-                        R[rIndex] = Hmarkers[otherChromosome]
-                    }
-                    rProbs[rIndex] = prob
-                } // each read
-            } // each predicted haplotype
+            (0..N-1).each { rIndex ->        // each of the N reads
+                // current haplotype assign for read
+                int rVal = R[rIndex]
+                int rHIndex = hMarkers.findIndexOf{ it == rVal }
+                Double prob = PFRScript.PFR(H, rHIndex, X, rIndex, epsilon)
+                Double r = (Double)Math.random()
+                if(debugging <= 2) {
+                    err.println "after PFR: rIndex=${rIndex}, " +
+                        "prob=${prob}, r=${r}"
+                }
+                if(prob > r) { 
+                    R[rIndex] = rVal
+                } else {
+                    int rOtherHIndex = rHIndex * -1 + 1  // either 0 or 1
+                    R[rIndex] = hMarkers[rOtherHIndex]
+                }
+                rProbs[rIndex] = prob
+            } // each read
 
             (0..1).each { chromosome ->
                 int[] currentH = H[chromosome]
@@ -115,25 +119,27 @@ class Algorithm2Script {
 
             // Step 4: For fixed read origin R and haplotype reference S,
             // sample haplotype H; see equations 7&8
-            (0..M-1).each { hIndex -> // each snp
+            (0..M-1).each { mIndex -> // each snp
                 Double h1Prob = 0
                 Double h2Prob = 0
-                (0..1).each { chromosome -> 
-                    int[] currentH = H[chromosome]
-                    def currentS = sampledS.get(chromosome)
-                    def (prob, sumPlus1, sumMinus1) =
-                        PFHScript.PFH(chromosome, R, currentH, X, hIndex,
-                                      currentS, mu, epsilon, omega)
+                (0..1).each { hIndex -> 
+                    int otherHIndex = hIndex * -1 + 1  // either 0 or 1
+                    int[] currentH = H[hIndex]
+                    int[] otherH = H[otherHIndex]
+                    int currentHVal = currentH[mIndex]
+                    int otherHVal = otherH[mIndex]
+                    Double prob = PFHScript.PFH(H, hMarkers, hIndex, S, X, R,
+                                                mu, epsilon, omega)
                     // sample on the returned probability
                     Double r = (Double)Math.random()
                     if(debugging <= 2) {
-                        err.println "after PFH: hIndex=${hIndex}, chromosome=${chromosome}, " +
+                        err.println "after PFH: mIndex=${mIndex}, hIndex=${hIndex},  " +
                             "prob=${prob}, r=${r}"
                     }
                     if(prob > r) {
-                        currentH[hIndex] = -1
+                        currentH[mIndex] = currentHVal
                     } else { 
-                        currentH[hIndex] = 1
+                        currentH[mIndex] = otherHVal
                     }
                 } // each chromosome
             } // each SNP
@@ -152,7 +158,7 @@ class Algorithm2Script {
 //todo(remove)                }
                 //System.exit(1)
 //todo(remove)            }
-            p = PScript.P(R, H1, H2, S1, S2, SI1, SI2, S.size(), X, mu, 
+            p = PScript.P(H, R, S1, S2, SI1, SI2, S.size(), X, mu, 
                           epsilon, omega, rho, Z)
             if(debugging <= 2) {
                 err.println "p=${p}"
@@ -221,6 +227,12 @@ class Algorithm2Script {
         int[][] H = [[], []]
         H[0] = H1
         H[1] = H2
+        // todo: remove
+        err.println "*WARNING*: H is hard-coded here"//todo
+        // 2DL4*0010301
+        H[0] = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+        // 2DL4*00501
+        H[1] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         /*todo (remove) 
         H[0] = [-1, -1, -1, 1, 1, -1, -1, -1, -1, 1, 1, -1, -1, -1, 1, -1, -1, 1, 1, 1, -1, -1, 1, -1, 1, -1, 1, 1, 1, -1, 1, -1, 1, -1, 1, 1, 1, 1, -1, 1, 1, -1, -1, -1, 1, 1, 1, 1, 1, 1, -1, 1, -1, 1, 1, -1, -1, 1, 1, -1, -1, -1, -1, -1, 1] // C*02:06:02//todo
         H[1] = [1, 1, 1, -1, -1, 1, 1, 1, 1, -1, -1, 1, 1, 1, -1, 1, 1, -1, -1, -1, 1, 1, -1, 1, -1, 1, -1, -1, -1, 1, -1, 1, -1, 1, -1, -1, -1, -1, 1, -1, -1, 1, 1, 1, -1, -1, -1, -1, -1, -1, 1, -1, 1, -1, -1, 1, 1, -1, -1, 1, 1, 1, 1, 1, -1] // C*07:01:01//todo

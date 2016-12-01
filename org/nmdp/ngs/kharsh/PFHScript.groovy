@@ -1,15 +1,16 @@
 package org.nmdp.ngs.kharsh
 
 /*
- * Gibbs sampling for haplotype origin -1 for fixed reads and reference
- * haplotypes.
- * e.g., P(hi = -1 | R, S).
- * Equations 7&8 in the HARSH paper. 
+ * Sample haplotype H for fixed reads (R) and reference 
+ * haplotype (S): P(H|R,S). It returns the probability that the variant 
+ * is from the input haplotype, as opposed to the other haplotype.
+ * See equations 7 and 8 in the HARSH paper.
  *
  * To prevent divisions by zero, etc. when taking exponents of negative
  * numbers, implemented via 
  *   1/(1+exp(a-b)) instead of exp(a)/(exp(a)+exp(b)) as written in the 
  * paper.
+ * todo: put this back and put into PFR too (and PFS too?)
  *
  * chromosome is 0 or 1, indicating if currentH is the first or second 
  * predicted haplotype.
@@ -43,53 +44,58 @@ package org.nmdp.ngs.kharsh
 class PFHScript {
     static err = System.err
     static int debugging = 6
-        
-    static ArrayList PFH(int chromosome, int[] R, int[] currentH, int[][] X,
-                         int hIndex, int[] S, Double mu, Double epsilon,
-                         Double omega) {
+
+    static Double PFH(int[][] H, int[] hMarkers, int hIndex, int[][] S,
+                      int[][] X, int[] R, Double mu, Double epsilon,
+                      Double omega) {
         if(debugging <= 1) {
-            err.println "PFH(hIndex=${hIndex}"
-            err.println "PFH(currentH=${currentH})"
-            err.println "PFH(S=${S})"
+            err.println "PFH(hIndex=${hIndex})"
+            err.println "PFH(H=${H})"
         }
         // the alignment column vector for a single SNP
+        int otherhIndex = hIndex * -1 + 1
+        int[] hAssign = H[hIndex]
+        int[] sAssign = S[hIndex]
+        int[] hOther = H[otherhIndex]
+        int hapMarker = hMarkers[hIndex] // e.g., -1 for H1 and 1 for H2 (reads)
+        int otherhapMarker = hMarkers[otherhIndex]
+        // get the correct column (variant)
         int[] xi = X.collect { it[hIndex] }
-        int sSNP = S[hIndex]
+        // get the indexes of the reads assigned to this haplotype
+        int[] xHIndexes = [xi, hAssign].transpose().collect { it[0] == it[1] }.findIndexValues { it == true }
+        
+        // get the indexes of the reads assigned to the other haplotype
+        int[] xHOtherIndexes = [xi, hOther].transpose().collect { it[0] == it[1] }.findIndexValues { it == true }
 
-        int rjMultiplier = (int)-1; // for chromosome 1
-        if(chromosome == 1) { //todo?
-            rjMultiplier = (int)1
-        }
-
-        int snp = (int)-1
-        int[][] emptyX = [][]
-        //todo(changed from snp to sSNP)
-        Double thetaSumMinus1 = ThetaSumHapsScript.ThetaSumHaps(R, xi, emptyX, sSNP.intValue(),
-                                                                rjMultiplier.intValue(),
+        // the extent to which the variants assigned to this haplotype
+        // in X match this haplotype
+        Double thetaSumMinus1 = ThetaSumHapsScript.ThetaSumHaps(xHIndexes, xi,
+                                                                hAssign,
                                                                 epsilon)
-        //todo(changed from snp to sSNP)
-        Double nuSumMinus1 = NuSumHapsScript.NuSumHaps(R, xi, emptyX, sSNP,
-                                                       rjMultiplier, epsilon)
-        Double epsilon2 = EpsilonScript.Epsilon(snp, sSNP, omega)
+        // the extent to which the variants assigned to the other haplotype
+        // in X don't match this haplotype
+        Double nuSumMinus1 = NuSumHapsScript.NuSumHaps(xHOtherIndexes, xi,
+                                                       hAssign, epsilon)
+        // the extent to which the prediction matches the reference
+        Double epsilon2 = EpsilonScript.Epsilon(hAssign[hIndex],
+                                                sAssign[hIndex], omega)
 
         // numerator
         Double sumMinusTmp = thetaSumMinus1 + nuSumMinus1 + epsilon2
-//        Double sumMinus1 = Math.exp(sumMinusTmp)
         if(debugging <= 3) {
             err.println "PFH: thetaSumMinus1=${thetaSumMinus1}, nuSumMinus1=${nuSumMinus1}, epsilon2=${epsilon2}"
         }
 
-        snp = (int)1
-        //todo(changed from snp to sSNP)
-        Double thetaSumPlus1 = ThetaSumHapsScript.ThetaSumHaps(R, xi, emptyX, sSNP,
-                                                               rjMultiplier,
+        // the extent to which the variants assigned to the other haplotype
+        // in X match this haplotype
+        Double thetaSumPlus1 = ThetaSumHapsScript.ThetaSumHaps(xHOtherIndexes,
+                                                               xi, hAssign,
                                                                epsilon)
-        //todo(changed from snp to sSNP)
-        Double nuSumPlus1 = NuSumHapsScript.NuSumHaps(R, xi, emptyX, sSNP,
-                                                      rjMultiplier, epsilon)
-        epsilon2 = EpsilonScript.Epsilon(snp, sSNP, omega)
+        // the extent to which the variants assigned to this haplotype
+        // in X don't match the other predicted haplotype
+        Double nuSumPlus1 = NuSumHapsScript.NuSumHaps(xHIndexes, xi, hOther,
+                                                      epsilon)
         Double sumPlusTmp = thetaSumPlus1 + nuSumPlus1 + epsilon2
-        //Double sumPlus1 = Math.exp(sumPlusTmp)
 
         if(debugging <= 2) {
             err.println "PFH: thetaSumPlus1=${thetaSumPlus1}, nuSumPlus1=${nuSumPlus1}, epsilon2=${epsilon2}"
@@ -109,7 +115,13 @@ class PFHScript {
         if(debugging <= 1) { 
             err.println "PFH: return ${delta}, ${sumPlusTmp}, ${sumMinusTmp}"
         }
+        Double numerator = Math.exp(sumMinusTmp)
+        Double denominator = numerator + Math.exp(sumPlusTmp)
+        Double prob =  numerator / denominator
 
-        return [delta, sumPlusTmp, sumMinusTmp]
+        return prob
     } // PFH
 } // PFHScript
+
+
+

@@ -13,13 +13,10 @@ package org.nmdp.ngs.kharsh
  *
  * X is a N by M matrix computed from the read alignments against the reference. 
  * X_ij =0 (no variant), -1 (first variant), 1 (second variant). 
- *   Rows are the N reads(i), columns are the M variants(j).
- * xj is one row (i.e., read) from X that spans one or more variants (j).
- *
- * h is one o two predicted haplotypes {-1,1}.
- *
- * rj is the current assignment of the read relative to haplotype {-1,1}.
- *
+ *   columns are the M variants(i), rows are the N reads(j).
+ * xj is one row (i.e., read) from X that spans one or more variants (i).
+ * H is a predicted haplotype
+ * S is a reference haplotype
  * epsilon represents the sequencing error rate; must be > 0.0
  *
  * @author Dave Roe
@@ -30,25 +27,22 @@ class NuSumReadsScript {
     static err = System.err
     static int debugging = 6
 
-    static Double NuSumReads(int[] xi, int[] H, int rj, Double epsilon) {
+    static Double NuSumReads(int[] indexes, int[] xj, int[] H,
+                             Double epsilon) {
         if(debugging <= 1) {
-            err.println "NuSumReads()"
+            err.println "NuSumReads(xj=${xj})"
         }
         Double sum = 0.0
-        // find all the non-zero indexes
-        def varIndexes = xi.findIndexValues { it != 0 }
-        varIndexes.each { i ->
-            int hi = H[i]
-            int j = xi[i]
-            sum = NuScript.Nu(rj, j, hi, Epsilon)
+
+        indexes.each { j ->
+            int xjVal = xj[j]
+            int hVal = H[j]
+            sum += NuScript.Nu(xjVal, hVal, epsilon)
         }
 
         if(debugging <= 1) {
             err.println String.sprintf("NuSumReads: return %1.9f", sum)
         }
         return sum        
-            
-            
-        
     } // NuSumReads
 } // NuSumReadsScript
