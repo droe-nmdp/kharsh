@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.9.4
+Created-By: 1.7.0_25-b15 (Oracle Corporation)
+Main-Class: com.github.lindenb.jvarkit.tools.sam2tsv.Sam2Tsv
+Git-Hash: 70fc067324b36b50b37d7def077e632043c049bc
+Compile-Date: 2015-02-05 12:23:46
+Class-Path: /Users/droe/tmp/jvarkit/htsjdk/dist/htsjdk-1.121.jar /User
+ s/droe/tmp/jvarkit/htsjdk/dist/snappy-java-1.0.3-rc3.jar /Users/droe/
+ tmp/jvarkit/htsjdk/dist/commons-jexl-2.1.1.jar /Users/droe/tmp/jvarki
+ t/htsjdk/dist/commons-logging-1.1.1.jar
+

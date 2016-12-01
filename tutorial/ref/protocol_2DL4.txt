@@ -1,0 +1,16 @@
+- Put 2DL4*0010201 from KIR2DL4_gen.fasta into 2DL4.fasta.
+- Todo: need to update path to picard.jar.
+
+- Make indexes for samtools and bowtie2
+> samtools faidx 2DL4.fasta
+> java -Xmx2g -jar /usr/local/opt/picard-tools/share/java/picard.jar CreateSequenceDictionary R=2DL4.fasta O=2DL4.dict
+> mkdir bowtie_indexes
+> cd bowtie_indexes
+> bowtie2-build ../2DL4.fasta 2DL4_index
+> cd ..
+> mkdir bwa_indexes
+> cd bwa_indexes
+> bwa index ../2DL4.fasta
+
+- Make the bed file from the information here
+  http://www.ebi.ac.uk/Tools/dbfetch/dbfetch?db=ipdkir;id=KIR00021

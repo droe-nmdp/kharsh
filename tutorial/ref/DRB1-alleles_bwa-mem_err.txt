@@ -1,0 +1,6 @@
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 27 sequences (351279 bp)...
+[M::mem_process_seqs] Processed 27 reads in 1.632 CPU sec, 0.880 real sec
+[main] Version: 0.7.12-r1039
+[main] CMD: bwa mem -t2 DRB1.fasta DRB1_gen.fasta
+[main] Real time: 0.907 sec; CPU: 1.644 sec

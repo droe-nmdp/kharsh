@@ -1,0 +1,12 @@
+loading input file ...
+done with reads
+11177 positions in variantMap before pruning
+matrixNeg1 positions=11177
+matrix1 positions=131
+first matrix1 position=7346
+131 intersect SNPs
+52 rows
+done. 284686 reads/sites, 52 reads in matrixCombined
+131 snps in matrixCombined
+outputing matrixCombined...
+done

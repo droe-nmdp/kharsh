@@ -1,0 +1,3 @@
+#!/bin/bash
+PREFIX=$(dirname $0)
+java -Xmx500m -cp /Users/droe/bin/jvarkit/htsjdk/dist/htsjdk-1.121.jar:/Users/droe/bin/jvarkit/htsjdk/dist/snappy-java-1.0.3-rc3.jar:/Users/droe/bin/jvarkit/htsjdk/dist/commons-jexl-2.1.1.jar:/Users/droe/bin/jvarkit/htsjdk/dist/commons-logging-1.1.1.jar:$PREFIX/sam2tsv.jar com.github.lindenb.jvarkit.tools.sam2tsv.Sam2Tsv $*

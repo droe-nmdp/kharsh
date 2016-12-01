@@ -1,0 +1,18 @@
+- Put DRB1*07:01:01:02 from DRB1_gen.fasta into DRB1.fasta.
+- Todo: need to update path to picard.jar.
+
+- Make indexes for samtools and bowtie2
+> samtools faidx DRB1.fasta
+> java -Xmx2g -jar /usr/local/opt/picard-tools/share/java/picard.jar CreateSequenceDictionary R=DRB1.fasta O=DRB1.dict
+> mkdir bowtie_indexes
+> cd bowtie_indexes
+> bowtie2-build ../DRB1.fasta DRB1_index
+> cd ..
+> mkdir bwa_indexes
+> cd bwa_indexes
+> bwa index ../DRB1.fasta
+
+- Make the bed file from the information here
+  http://www.ebi.ac.uk/Tools/dbfetch/dbfetch?db=imgthla;id=HLA03486
+    obtained via imgt-hla allele search, then clicking on the link for
+    "IMGT/HLA Acc No:" 

@@ -1,0 +1,20 @@
+Create a matrix of variants from reference sequences.
+Input is <gene>_gen.fasta. The accession numbers need to be removed.
+  e.g., remove 'KIR:KIR00020 ' from 'KIR:KIR00020 2DL4*00101 1134 bp'
+  this allows the allele names to be output for the interpretation
+Output is <gene>-alleles_matrix.txt and <gene>-alleles_variants.txt.
+Requires https://github.com/lindenb/jvarkit/ and readsMatrix.groovy.
+
+- Make 2DL4-alleles_mapped.bam from <gene>_gen.fasta.
+> bwa mem -t2 2DL4.fasta 2DL4_gen.fasta > 2DL4-alleles.sam 2> 2DL4-alleles_bwa-mem_err.txt  
+> samtools view -b -S 2DL4-alleles.sam > 2DL4-alleles.bam
+> samtools sort 2DL4-alleles.bam 2DL4-alleles_sorted
+> samtools view -b -S -F0x4 2DL4-alleles_sorted.bam > 2DL4-alleles_mapped.bam
+> samtools index 2DL4-alleles_mapped.bam
+> nice gzip -f 2DL4-alleles.sam &
+
+- Convert reads to VCF-like file.
+sam2tsv -r 2DL4.fasta 2DL4-alleles_mapped.bam > 2DL4-alleles_reads.txt
+
+- Convert VCF-like file to matrix.
+readsMatrix.groovy -i 2DL4-alleles_reads.txt -o 2DL4-alleles_matrix.txt -m 2DL4-alleles_variants.txt 2> 2DL4-alleles_matrix_errs.txt

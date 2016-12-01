@@ -1,0 +1,9 @@
+track name=C*17:01:01:01 description="exon locations for C*17:01:01:01"
+C*17:01:01:01	283	355	HLA-C_exon_1
+C*17:01:01:01	486	755	HLA-C_exon_2	
+C*17:01:01:01	1002	1277	HLA-C_exon_3
+C*17:01:01:01	1865	2140	HLA-C_exon_4
+C*17:01:01:01	2265	2402	HLA-C_exon_5
+C*17:01:01:01	2841	2873	HLA-C_exon_6
+C*17:01:01:01	2981	3028	HLA-C_exon_7
+C*17:01:01:01	3193	3197	HLA-C_exon_8
