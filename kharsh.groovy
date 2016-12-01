@@ -8,9 +8,12 @@
  *
  * Output is IMGT/IPD nomenclature interpretation for both ARS and full gene.
  *
- * e.g., ./kharsh.groovy -m 0.00001 -e 0.01 -o 0.001 -r 0.0001 -c 0.1 -f 800 -g 900 -p input/DRB1-03010101-150201_DRB1_matrix.txt -a input/DRB1-alleles_matrix.txt
+ * The number of total variants is probably currently limited by the max
+ * size of an integer.
  *
- * ./kharsh.groovy -m 1.0E-5 -e 1.0E-4 -o 1.0E-5 -r 0.1 -c 0.1 -f 3000 -g 7500 -p input/2DL4_0080101-00901_8chunks.bwa_2DL4_matrix.txt -a input/2DL4-alleles_matrix2_2.txt 2> output/kharsh_err.txt
+ * e.g., ./kharsh.groovy -m 1 -e 0.01 -o 0.001 -r 0.0001 -c 0.1 -f 800 -g 900 -p input/DRB1-03010101-150201_DRB1_matrix.txt -a input/DRB1-alleles_matrix.txt
+ *
+ * ./kharsh.groovy -m 1 -e 1.0E-4 -o 1.0E-5 -r 0.1 -c 0.1 -f 3000 -g 7500 -p input/2DL4_0080101-00901_8chunks.bwa_2DL4_matrix.txt -a input/2DL4-alleles_matrix2_2.txt 2> output/kharsh_err.txt
  * 
  * e.g., ./harshVCF.groovy -p input/2DL4_0080101-00901_8chunks.bwa_2DL4_matrix.txt -a input/2DL4-alleles_matrix2.txt -o output/2DL4_0080101-00901_8chunks.bwa_2DL4.vcf
  *
@@ -22,16 +25,16 @@
 
 import org.dishevelled.commandline.*
 import org.dishevelled.commandline.argument.*
-import org.nmdp.b12s.kharsh.*
+import org.nmdp.ngs.kharsh.*
 
 // things that may change per run
-debugging = 3 // TRACE=1, DEBUG=2, INFO=3
+debugging = 1 // TRACE=1, DEBUG=2, INFO=3
 out = System.out
 err = System.err
 IOScript io = new IOScript()
 
 // these are just defaults and shouldn't be used
-Double mu = null // "heat" model parameter (e.g., 0.00001)
+Double mu = null // "heat" model parameter (e.g., 1; vary 1-10)
 Double epsilon = null // sequencing error rate (e.g., 0.01)
 Double omega = null // haplotype copying 'error' (e.g., 0.001)
 Double rho = null // the population recombination rate (e.g., 0.0001)
@@ -65,6 +68,7 @@ if(debugging <= 2) {
     err.println "(from input)S=" + S
     //err.println "readNames=${readNames.join(' ')}"
     err.println "alleleNames=${alleleNames.join(' ')}"
+    err.println "mu=${mu}"
 }
 if(debugging <= 3) {
     err.println "common snps:"
