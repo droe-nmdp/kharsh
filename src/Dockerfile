@@ -1,6 +1,8 @@
 FROM ubuntu:latest
 MAINTAINER Dave Roe <droe@nmdp.org>
 
+# todo: htsjdk
+
 # install stuff
 RUN apt-get update && apt-get install -qyy bwa curl git make \
      unzip samtools maven subversion gzip \

@@ -1,4 +1,4 @@
-- Put 2DL4*0010201 from KIR2DL4_gen.fasta into 2DL4.fasta.
+- Put 2DL4*0010201 from KP420446 into 2DL4.fasta.
 - Todo: need to update path to picard.jar.
 
 - Make indexes for samtools and bowtie2
@@ -13,4 +13,4 @@
 > bwa index ../2DL4.fasta
 
 - Make the bed file from the information here
-  http://www.ebi.ac.uk/Tools/dbfetch/dbfetch?db=ipdkir;id=KIR00021
+  https://www.ncbi.nlm.nih.gov/nuccore/KP420446
