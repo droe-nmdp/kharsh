@@ -32,7 +32,7 @@
  * @version $Id: readsMatrix.groovy 25440 2015-08-29 13:09:07Z droe $
  */
 
-import org.nmdp.b12s.kharsh.*
+import org.nmdp.ngs.kharsh.*
 import com.google.common.collect.Table
 import com.google.common.collect.HashBasedTable
 import java.io.*;
