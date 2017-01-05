@@ -41,7 +41,7 @@ import org.dishevelled.commandline.argument.*
 import org.nmdp.research.bio.util.CsvFileReader
 
 // things that may change per run
-debugging = 3 // TRACE=1, DEBUG=2, INFO=3
+debugging = 4 // TRACE=1, DEBUG=2, INFO=3
 freqThreshold = 0.1 // ignore alleles less than this frequency
 err = System.err
 
@@ -58,6 +58,9 @@ class ReadState {
   String previousBase
 }
 
+/**
+ * This function processes a single line from the input.
+ */
 processLine = 
 { Map variantMap, boolean translateVariants, Closure translateBase, ReadState state, String line
 ->
@@ -85,7 +88,7 @@ processLine =
     refPos = inRefPos.toInteger()
   }
   
-  if (refPos < 0 ) { // todo (examine the meaning of this)
+  if ( refPos < 0 ) { // todo (examine the meaning of this)
     state.previousRefPos = refPos
     state.previousBase = base
     return
@@ -98,21 +101,23 @@ processLine =
   Integer variant = translateBase(refPos, base)//droe
   if ( variant != null ) {
     def putVariant = variant
+    
     if ( translateVariants == false ) {
       putVariant = base
     }
     
+    def mat = null
     if ( variant == -1 ) {
-      if ( debugging <= 2 ) { 
-        err.println "adding: ${name}, ${refPos}, ${putVariant}"
-      }
-      
-      state.matrixNeg1.put( name, refPos, putVariant )
+      mat = state.matrixNeg1
     } else if ( variant == 1 ) {
+      mat = state.matrix1
+    }
+    
+    if ( mat != null ) {
       if ( debugging <= 2 ) { 
         err.println "adding: ${name}, ${refPos}, ${putVariant}"
-      }
-      state.matrix1.put( name, refPos, putVariant )
+      }      
+      mat.put( name, refPos, putVariant )
     } else {
       if ( debugging <= 2 ) { 
         err.println "warning unknown base: ${name}, ${refPos}, ${base}"
@@ -133,6 +138,117 @@ Integer processInputFile( file, process ) {
   reader.eachLine { line, index -> process line; index +1 }
 }                                                                    
 
+removeVariant = {
+  Map variantMap, Integer pos
+  -> 
+    removeList = []
+    variantMap[pos].each { key, value ->
+      if ( debugging <= 2 ) { 
+        err.println "removing variantMap ${key3} (${value3}) for ${col}"
+        err.println variantMap[pos].keySet()
+      }
+      removeList.add(key)
+    }
+    
+    removeList.each { key ->
+      variantMap[pos].remove(key)
+    }
+}
+
+void removeInfrequentVariants( Map alleleCountMap
+  , List readNames
+  , Table<String, Integer, Integer> mat
+  , Integer pos
+  , Integer totalCount
+  , Closure removeVariant
+) {
+  
+  if (debugging  <= 3) { 
+    err.println "removing alleles below ${freqThreshold} ..."
+  }
+  
+  alleleCountMap.each { marker, count ->
+    if ( (count/totalCount) >= freqThreshold ) {
+      return
+    }
+    
+    if ( debugging <= 1 ) { 
+      err.println "removing col=${col}, key=${key}"
+      err.println "value=${value}"
+      err.println "totalCount=${totalCount}"
+    }
+    
+    readNames.each { readName ->
+      value = mat.get(readName, pos)
+      if ( value != marker ) {
+        if ( debugging <= 2 ) { 
+          err.println "removing from matrixCombined ${row} ${col}"
+        }
+        
+        mat.remove(readName, pos)
+        removeVariant pos
+        
+      }
+    }
+    
+    if (debugging  <= 3) { 
+      err.println "done removing alleles below threshold"
+    }
+
+  }
+  
+}
+
+void removeSingleVariants(
+  Map variantMap
+  , List readNames
+  , Table<String, Integer, Integer> mat
+  , Integer pos
+) {
+  
+  if ( variantMap[pos]?.size() == 1 ) { // if only one left
+    readNames.each { readName -> mat.remove(readName, pos) }
+    variantMap.remove(pos)
+  }
+}
+
+void outputMatrix( FileWriter outFile
+                   , Table<String, Integer, Integer> mat
+                   , boolean translateVariants
+                 ) {
+
+  positions = mat.columnKeySet().sort()
+  
+  // headers
+  if ( translateVariants ) { 
+    positions.each { pos -> outFile.print "\t${pos}" }
+    outFile.println ""
+  }
+  
+  // content
+  readNames = mat.rowKeySet().sort()
+  readNames.each { readName ->
+    if ( translateVariants ) {
+      outFile.print "${readName}"
+    }
+    
+    positions.each { pos ->
+      value = mat.get(readName, pos)
+      if ( value == null ) {
+        value = ""
+      }
+      if ( translateVariants ) {
+        outFile.print "\t"
+      }
+      outFile.print "${value}"
+    }
+    outFile.println ""
+  }
+  
+  outFile.close()
+  err.println "done"
+}
+
 void main () {
   (inFile, outFile, vInFile, vOutFile, translateVariants) = handleArgs(args)
   
@@ -144,14 +260,14 @@ void main () {
 
   Table<String, Integer, Integer> matrix1 = HashBasedTable.create()
   Table<String, Integer, Integer> matrixNeg1 = HashBasedTable.create()
-
+  
   def state = new ReadState()
   state.matrix1 = matrix1
   state.matrixNeg1 = matrixNeg1
   
   readCount =
     processInputFile( inFile, processLine.curry( variantMap, translateVariants, translateBase.curry( vInFile == null, variantMap ), state ))
-  
+    
   err.println "done with reads"
   if ( debugging <= 3 ) { 
     err.println variantMap.keySet().size() + " positions in variantMap before pruning"
@@ -159,139 +275,91 @@ void main () {
     err.println "matrix1 positions=" + matrix1.columnKeySet().size()
     if ( matrix1.columnKeySet().size() > 0 ) {
       // (todo) fix this: wrong arg type for ColumnKeySet.getAt
-      ;//err.println "first matrix1 position=" + matrix1.columnKeySet()[(Integer)0]
+      err.println "first matrix1 position=" + matrix1.columnKeySet()[(Integer)0]
     }
   }
   
-  intersectSNPs = matrixNeg1.columnKeySet().intersect(matrix1.columnKeySet()).sort()
-
+  intersectSNPs =
+    matrixNeg1.columnKeySet().intersect(matrix1.columnKeySet()).sort()
+  
   err.println "I: " + intersectSNPs
   err.println "${intersectSNPs.size()} intersect SNPs"
-  rows = matrix1.rowKeySet() + matrixNeg1.rowKeySet()
-  rows.sort()
   
-  err.println "R: " + rows
-  err.println "${rows.size()} rows"
+  readNames = matrix1.rowKeySet() + matrixNeg1.rowKeySet()
+  readNames = readNames.sort()
+  
+  err.println "R: " + readNames
+  err.println "${readNames.size()} reads"
   Table<String, Integer, Integer> matrixCombined = HashBasedTable.create()
-  intersectSNPs.each { col ->
+  
+  def incrementCountFor = { map, key ->
+    count = map[key]
+    if ( count == null ) {
+      map[key] = 1
+    } else {
+      map[key] = count+1
+    }
+  }
+  
+  //  def removeVariant = removeVariant.curry( variantMap )
+  
+  intersectSNPs.each { pos ->
     Map alleleCountMap = [:]
-    Integer totalCount = 0
-    rows.each( { row -> 
-      value = matrixNeg1.get(row, col)
-      if (value == null ) {
-        value = matrix1.get(row, col)
+    Integer totalVariantCount = 0
+    
+    readNames.each { readName -> 
+      value = matrixNeg1.get(readName, pos)
+      if ( value == null ) {
+        value = matrix1.get(readName, pos)
       }
       
-      if ( value != null ) {
-        if ( debugging  <= 1 ) { 
-          err.println "value=${value}"
-        }
-        matrixCombined.put(row, col, value)
-        count = alleleCountMap[value]
-        if ( count == null ) {
-          alleleCountMap[value] = 1
-        } else {
-          alleleCountMap[value] = count+1
-        }
-        totalCount++
-          }
-               }    
-      )
-    err.println "T: ${totalCount}"
+      if ( value == null ) {
+        return
+      }
+      
+      if ( debugging  <= 1 ) { 
+        err.println "value=${value}"
+      }
+      
+      matrixCombined.put( readName, pos, value )
+      incrementCountFor( alleleCountMap, value )
+      totalVariantCount++
+    }
+    
+    err.println "T: ${totalVariantCount}"
+    
     // delete read variants if frequency is below a threshold
-    if(vInFile != null) { // only restrict on the reads, not the reference alleles
-      if(debugging  <= 3) { 
-        err.println "removing alleles below ${freqThreshold} ..."
-      }
-      alleleCountMap.each { key, value->
-        if((value/totalCount) < freqThreshold) {
-          if(debugging  <= 1) { 
-            err.println "removing col=${col}, key=${key}"
-            err.println "value=${value}"
-            err.println "totalCount=${totalCount}"
-          }
-          rows.each { row ->
-            value2 = matrixCombined.get(row, col)
-            if(value2 == key) {
-              if(debugging <= 2) { 
-                err.println "removing from matrixCombined ${row} ${col}"
-              }
-              matrixCombined.remove(row, col)
-              removeList = []
-              variantMap[col].each { key3, value3 ->
-                if(debugging <= 2) { 
-                  err.println "removing variantMap ${key3} (${value3}) for ${col}"
-                  err.println variantMap[col].keySet()
-                }
-                removeList.add(key3)
-              }
-              removeList.each { key3 ->
-                variantMap[col].remove(key3)
-              }
-            } //if the value matches
-          } // each read
-          if(debugging  <= 3) { 
-            err.println "done removing alleles below threshold"
-          }
-        } // if threshold test
-      } // each key (-1, 1, etc)
-      if(variantMap[col].size() < 2) { // if only one left
-        rows.each { row ->
-          matrixCombined.remove(row, col)
-        }
-        variantMap.remove(col)
-      }
-    } // if reads run
-  } // each snp/column
-  matrixNeg1.clear()
-  matrix1.clear()
+    if ( vInFile != null) { // only restrict on the reads, not the reference alleles
+      removeInfrequentVariants( alleleCountMap
+                                , readNames
+                                , matrixCombined
+                                , pos
+                                , totalVariantCount
+                                , removeVariant )
+    }
+    
+    removeSingleVariants(variantMap, readNames, matrixCombined, pos)
+
+  }
 
   err.println "done. ${readCount} reads/sites, ${matrixCombined.rowKeySet().size()} reads in matrixCombined"
   err.println "${matrixCombined.columnKeySet().size()} snps in matrixCombined"
-
+  
   err.println "outputing matrixCombined..."
 
-  columns = matrixCombined.columnKeySet().sort()
-  err.println columns.join(",")//todo
-  // headers
-  if(translateVariants == true) { 
-    columns.each { column ->
-      outFile.print "\t${column}"
-    }
-    outFile.println ""
+  outputMatrix( outFile, matrixCombined, translateVariants )
+  
+  if ( vOutFile != null ) { 
+    outputVariantMap( vOutFile, variantMap, matrixCombined )
   }
-  // content
-  rows = matrixCombined.rowKeySet().sort()
-  rows.each { row ->
-    if(translateVariants == true) {
-      outFile.print "${row}"
-    }
-    columns.each { column ->
-      value = matrixCombined.get(row, column)
-      if(value == null) {
-        value = ""
-      }
-      if(translateVariants == true) {
-        outFile.print "\t"
-      }
-      outFile.print "${value}"
-    }
-    outFile.println ""
-  }
-  outFile.close()
-  err.println "done"
 
-  if(vOutFile != null) { 
-    outputVariantMap(vOutFile, variantMap, matrixCombined)
-  }
-  //vOutFile.close()
 }
 
 /*
  * Returns a -1 or 1 representation of the read base. For now, the first
  * observed observation gets a -1 and the second gets a 1.
  * 
- * @param changeVariants if non-null, don't change variants; if null, change variants
+ * @param changeVariants if false, don't change variants in variantMap; if true, change variants in variantMap
  * @param Map variantMap position -> variant -> indicator
  * @param Integer pos the position of the variant
  * @param base the observed variant
@@ -308,47 +376,53 @@ translateBase =
   
   Integer ret = null // not mapped or third+ variant
   baseMap = variantMap[pos] // map: variant -> indicator
+  
   if ( baseMap != null ) {
+    //err.println ("B: " + baseMap + ":" + pos)
     removeKeys = []
     addKeyVals = [:]
     baseMap.each { baseI, indicatorI ->
       if ( debugging <= 2 ) {
         err.println "translateBase: base=${base}, baseI=${baseI}, indicatorI=${indicatorI}"
       }
-      if (base.startsWith(baseI) ) {
+      
+      if ( base.startsWith( baseI ) ) {
         ret = indicatorI
-        if(base.length() > baseI.length()) { 
-          if(debugging <= 2) {
-            err.println "${pos}: adding ${base}, removing ${baseI}"
+        if ( base.length() > baseI.length() ) { 
+          if ( debugging <= 2 ) {
+            err.println "Q: ${pos}: adding ${base}, removing ${baseI}"
           }
+          
           addKeyVals[base] = ret
           removeKeys.add(baseI)
         }
       }
     } // each base at this position
-
+    
     removeKeys.each { key ->
       baseMap.remove(key)
     }
+    
     addKeyVals.each { key, val ->
       baseMap[key] = val
     }
     
-    if (ret != null) {
-      if(debugging  <= 1) {
+    if ( ret != null ) {
+      if ( debugging <= 1) {
         err.println "translateBase: return ${ret}"
       }
       return ret
     }
     
     maxValue = baseMap.values().max()
-    if(maxValue == null) {
+    if ( maxValue == null ) {
       ret = -1
-    } else if(maxValue == -1) {
+    } else if ( maxValue == -1 ) {
       ret = 1
     } else {
       ret  = maxValue + 1
     }
+    
     if ( changeVariants ) {
       variantMap[pos][base] = ret
     }
@@ -369,7 +443,7 @@ translateBase =
   ret
 }
 
-void outputVariantMap( FileWriter vout, Map variantMap, HashBasedTable matrix) {
+void outputVariantMap( FileWriter vout, Map variantMap, HashBasedTable matrix ) {
   def sorted = matrix.columnKeySet().sort()
   def concat = { sep, pos ->
     valueMap = variantMap[pos]
@@ -470,5 +544,3 @@ List handleArgs( String[] args ) {
 
 
 main()
-
-
