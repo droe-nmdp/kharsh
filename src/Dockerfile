@@ -5,8 +5,8 @@ MAINTAINER Dave Roe <droe@nmdp.org>
 
 # install stuff
 RUN apt-get update && apt-get install -qyy bwa curl git make \
-     unzip samtools maven subversion gzip \
-     openjdk-7-jdk groovy bowtie2 \
+     xsltproc unzip samtools maven subversion gzip \
+     openjdk-8-jdk groovy bowtie2 \
   && cd /opt && git clone "https://github.com/lindenb/jvarkit.git" \
   && cd /opt/jvarkit && make sam2tsv \
   && cd /opt && git clone "https://github.com/google/guava" \
@@ -25,10 +25,12 @@ ENV CLASSPATH /opt/dsh-commandline/target/dsh-commandline-1.1.jar:$CLASSPATH
 ENV NXF_OPTS "-Xms1G -Xmx4G"
 
 # kharsh source
-ADD *.nf /opt/kharsh/
-ADD tutorial /opt/kharsh/tutorial/
-ADD src /opt/kharsh/src/
-ENV PATH /opt/kharsh/src:$PATH
+RUN git clone https://github.com/droe-nmdp/kharsh /opt/kharsh/repos
+RUN ln -s /opt/kharsh/repos/src /opt/kharsh/
+RUN ln -s /opt/kharsh/repos/tutorial /opt/kharsh/
+RUN cp /opt/kharsh/repos/*.nf /opt/kharsh
+
+ENV PATH /opt/kharsh/:/opt/kharsh/src:$PATH
 ENV CLASSPATH /opt/kharsh/src/kharsh_0.1.jar:/opt/kharsh/src/CsvFileReader_2.1.jar:$CLASSPATH
 
 CMD ["/bin/bash"]
