@@ -1,5 +1,8 @@
 package org.nmdp.ngs.kharsh
 
+import com.google.common.collect.Table
+import com.google.common.collect.HashBasedTable
+
 /*
  * IO-related operations.
  *
@@ -221,102 +224,109 @@ class IOScript {
     } // processMatrix
 
     /*
-     * loadVariantMap
-     * Loads a file containing the variants into a Map
+     * loadVariantMatrix
+     * Loads a file containing the variants into matrices.
+     * The columns need to be ordered by position.
      *
      * @param vInFile a file with variant locations and each variants values
-     * @return a Map: position -> base -> representation (null, 1, -1) 
+     * @return ArrayList of 3 Tables
      */
-    Map loadVariantMap(FileReader vInFile) {
-        Map variantMap = [:]  // position -> base -> representation (null, 1, -1)
-        if(debugging <= 3) {
-            err.println "loading load predefined variantMap ..."
-        }
-        def vReader = new BufferedReader(vInFile)
-        def positions = vReader.readLine().tokenize()
-        def variantLists = vReader.readLine().tokenize()
-        for(int i=0; i <= positions.size(); i++) {
-            //err.println "before continue, i=${i}"//todo
-            // e.g., C=-1,G=1,.GG=2
-            def pos = positions[i]
-            if(debugging  <= 1) { 
-                err.println "i=${i}, pos=${pos}"
-            }
-            if(pos == null) {
-                //err.println "before continue, i=${i}"//todo
-                continue
-            }
-            pos = pos.toInteger()
-            def variantList = variantLists[i]
-            if(debugging  <= 1) { 
-                err.println "variantList=${variantList}"
-            }
-            variantList.tokenize(',').each { variant ->
-                if(debugging  <= 1) { 
-                    err.println "variant=${variant}"
-                }
-                String var
-                String ind
-                (var, ind) = variant.split("=")
-                Integer indInt = ind.toInteger()
-                def posMap = variantMap[pos]
-                if(posMap == null) {
-                    variantMap[pos] = [(var):(indInt)]
-                } else {
-                    posMap[var] = indInt
-                }
-            }
-        } // each position
-        err.println variantMap.keySet().size() + " positions in initial variantMap"        
-        return variantMap
-    } // loadVariantMap
-
-    /* 
-     * Converts a matrix generated from readsMatrix.groovy into the 
-     * .map file needed for HARSH.
-     *
-     * Input is two matrices (one for the person, one for the reference alleles)
-     * Output is written to outputFileName.
-     */
-    void makeHarshVcf(String fileName, String alleleFileName,
-                      FileReader vInFile, String outputFileName) {
+    ArrayList<Table> loadVariantMatrix(FileReader vInFile) {
         if(debugging <= 1) {
-            err.println "makeHarshVcf(fileName=${fileName}, alleleFileName=${alleleFileName}, vInFile=${vInFile}, outputFileName=${outputFileName})"
+            err.println "loading variant matrix ..."
         }
-        // position -> base -> representation (null, 1, -1)
-        Map variantMap = loadVariantMap(vInFile)
-        // get the common snps
-        String header
+        // hash variant references per read and position
+        // Table<read, position, ref variant> (e.g., <2DL4*00101, 102, 1>)
+        HashBasedTable<String, Integer, String> refAllelePosMatrix = HashBasedTable.create()
+        // hash variants references per variant and position
+        // Table<variant, position, ref variant> (e.g., <A, 102, 1>)
+        Table<String, Integer, Integer> varPosMatrix = HashBasedTable.create()
+        // hash variants per variant reference and position
+        // Table<ref variant, position, variant> (e.g., <1, 102, A>)
+        Table<Integer, Integer, String> refVarPosMatrix = HashBasedTable.create()
+        def reader = new BufferedReader(vInFile)
 
-        File personFile = new File(fileName)
-        header = personFile.withReader { header = it.readLine() }
-        List<Integer> snpIndexes = header.split('\t')[1..-1] // skip header column
-        int numXReads = -1 // -1 for the header
-        personFile.eachLine { numXReads++ }
+        // first row are positions
+        TreeSet<Integer> positions = new TreeSet()
+        ArrayList header = reader.readLine().split('\t')
+        header[1..-1].each { pos ->
+            positions.add(pos.toInteger())
+        }
 
-        File alleleFile = new File(alleleFileName)
-        header = alleleFile.withReader { header = it.readLine() }
-        List<Integer> snpAlleleIndexes = header.split('\t')[1..-1] // skip header column 
-       List<Integer> commonSnpIndexes = snpIndexes.intersect(snpAlleleIndexes).collect{ it as Integer}
+        // non-header rows
+        reader.eachLine { line ->
+            if(!(line.contains('/'))) { // skip if no variants
+                return
+            }
+            ArrayList cols = line.split('\t')
+            String read = cols[0]
+            if(debugging <= 2) { 
+                err.println "loadVariantMatrix: line=${line}, read=${read}"
+            }
+            cols[1..-1].eachWithIndex { cell, i ->
+                if((cell == null) || (cell == "")) {
+                    return
+                }
+                String rv, var, type
+                if(debugging <= 2) { 
+                    err.println "loadVariantMatrix: cell=${cell}"
+                }
+                (rv, var, type) = cell.split('/')
+                Integer refVar = rv.toInteger()
+                Integer position = positions[i]
+                refVarPosMatrix.put(refVar, position, var)
+                varPosMatrix.put(var, position, refVar)
+                refAllelePosMatrix.put(read, position, var)
+            }
+        } // each line
 
-       PrintWriter outFile = new File(outputFileName).newPrintWriter()
-       // output header
-       outFile.println "##fileformat=VCFv4.2"
-       outFile.println "#CHROM\tPOS\tID\tREF\tALT"
-       //todo pass in the reference name from fasta
-       String chromosome = "2DL4*0010201" 
-       commonSnpIndexes.eachWithIndex { snpIndex, listIndex ->
-           def ref
-           def alt
-           def vm = variantMap[snpIndex]
-           (ref, alt) = vm.entrySet()
-           outFile.println "${chromosome}\t${snpIndex}\tSNP\t${ref.getKey()}\t${alt.getKey()}"
-       } // each common snp
+        return[refAllelePosMatrix, varPosMatrix, refVarPosMatrix]
+    } // loadVariantMatrix
 
-       outFile.close()
-       if(debugging <= 1) {
-           err.println "makeHarshVcf: return"
-       }
-    } // makeHarshVcf
+    /*
+     * saveVariantMatrix
+     *
+     * Output matrix
+     *  row headers: each column is a reference position starting with 1
+     *  column headers: each row is a read/reference name (e.g. 2DL4*00101)
+     *  cell: a '/' separated value containing 
+     *        1) 1-based integer reference alleles
+     *        2) the DNA variant
+     *        3) the cigar operator (I,D,M)
+     *    (e.g., 1/A/M, 2/AA/I, 3/AA/D)
+     * 
+     * @param outFile FileWriter to direct output
+     * @param refAllelePosMatrix Table<variant, position, ref variant> (e.g., <A, 102, 1>)
+     */
+    void saveVariantMatrix(FileWriter vout,
+                           HashBasedTable<String, Integer, String> refAllelePosMatrix) {
+        def header = { sep, pos ->
+            vout.print "\t${pos}"
+        }
+
+        def rowContent = { seq, read ->
+            vout.print "${read}" // row header
+            Map columnMap = refAllelePosMatrix.row(read)
+            refAllelePosMatrix.columnKeySet().sort().each { pos ->
+                String val = columnMap[pos]
+                val = val ? val : ""
+                vout.print "\t${val}"
+            }
+            vout.println ""
+        }
+        
+        def positions = refAllelePosMatrix.columnKeySet().sort()
+        def reads = refAllelePosMatrix.rowKeySet().sort()
+
+        // for the first column/header containing read/allele names
+        positions.inject( "", header )
+        vout.println ""
+
+        reads.inject( "", rowContent )
+        vout.println ""
+
+        vout.flush()
+        
+    } //saveVariantMatrix
 
 } // IOScript
