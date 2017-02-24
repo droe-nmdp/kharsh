@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # e.g., jar -cvf kharsh_0.1.jar org; cp kharsh.groovy kharsh_0.1.jar ~/git/kharsh/src/
+# e.g., export CLASSPATH=$HOME/git/kharsh:$CLASSPATH
 
 export PATH=$PWD/src:$PATH
 export PATH=$PWD/src/jvarkit/:$PATH
