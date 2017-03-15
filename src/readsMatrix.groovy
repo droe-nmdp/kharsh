@@ -1,29 +1,33 @@
 #!/usr/bin/env groovy
 
 /*
- * Generates a hit matrix of reads to variants given a vertical textual
- * representation of an alignment file as represented by the output of 
+ * Generates a hit matrix of reads to variants per positiongiven a vertical 
+ * textual representation of an alignment file as represented by the output of 
  * sam2tsv.
  *
  * Output matrix
  *  row headers: each column is a reference position starting with 1
  *  column headers: each row is a read/reference name (e.g. 2DL4*00101)
  *  cell: a '/' separated value containing 
- *        1) 1-based integer reference alleles
- *        2) the DNA variant
- *        3) the cigar operator (I,D,M)
- *    (e.g., 1/A/M, 2/AA/I, 3/AA/D)
+ *        1) 1-based integer ID/index per allele (1, 2, 3, ...)
+ *        2) the DNA variant (A, G, GT, ...)
+ *        3) the cigar operator (Insertion,Deletion,Modification) relative to reference
+ *    e.g., 1/A/M, 2/AA/I, 3/AA/D
+ *      variant 1 is a modification to A
+ *      variant 2 is an insertion of AA
+ *      variant 3 is a deletion of AA
  *
  * e.g., Step 1: make the matrix and alleles for the reference alleles
  *   ./src/readsMatrix.groovy -i tutorial/ref/2DL4_2/2DL4-alleles_reads.txt -o output/test1_2DL4_ref-matrix.txt
- * e.g., Step 2: make the matrix for the individual
- *   ./src/readsMatrix.groovy -i tutorial/ref/2DL4_2/2DL4-alleles_reads_00104.txt -o output/test1_2DL4_ref-matrix_00104.txt
+ * e.g., Step 2: make the matrix for the individual's reads
+ *   ./src/readsMatrix.groovy -i tutorial/ref/2DL4_2/2DL4-alleles_reads_0010308-00104.txt -o output/test1_2DL4_allele-matrix_0010308-00104.txt -p output/test1_2DL4_ref-matrix.txt
  * 
  * The TSV file uses 0-based read indexes (READ_POS) and
  * 1-based reference positions (REF_POS).
  *
  * @see https://github.com/lindenb/jvarkit/wiki/SAM2Tsv
  * @see https://samtools.github.io/hts-specs/SAMv1.pdf
+ * @see env.bash for to set up the jar and non-jar environments
  *
  * Requires
  *  guava.jar: https://github.com/google/guava
@@ -45,7 +49,7 @@ import org.dishevelled.commandline.*
 import org.dishevelled.commandline.argument.*
 
 // things that may change per run
-debugging = 3 // TRACE=1, DEBUG=2, INFO=3
+debugging = 3 // TRACE=1, DEBUG=2, INFO=3, ...
 freqThreshold = 0.1 // ignore alleles less than this frequency
 
 err = System.err
@@ -54,7 +58,6 @@ IOScript io = new IOScript()
 String removeRefAlleleFromMatrix(
     Table<String, Integer, Integer> varPosMatrix,
     Table<Integer, Integer, String> refVarPosMatrix,
-    Table<String, Integer, Integer> inVarPosMatrix,
     String variant, Integer position) {
   if(debugging <= 2) {
     err.println "removeRefAlleleFromMatrix(variant=${variant}, position=${position})"
@@ -71,9 +74,9 @@ String removeRefAlleleFromMatrix(
 } // removeRefAlleleFromMatrix
 
 /*
- * Returns the variant reference given a variant and position. Adds new
+ * Returns the variant ID given a variant and position. Adds new
  * variants and references to the tables if necessary. Uses variants
- * previously defined in inVarPosMatrix when present.
+ * previously defined  when present.
  *
  * @param varPosMatrix Table of variants references per variant and position
  * @param refVariantMap Table of variants per variant reference and position
@@ -83,7 +86,7 @@ String removeRefAlleleFromMatrix(
 Integer getRefAlleleFromMatrix(
     Table<String, Integer, Integer> varPosMatrix,
     Table<Integer, Integer, String> refVarPosMatrix,
-    Table<String, Integer, Integer> inVarPosMatrix,
+    Boolean processingIndividual,
     String variant, Integer position) {
   if(debugging <= 2) {
     err.println "getRefAlleleFromMatrix(variant=${variant}, position=${position})"
@@ -92,8 +95,8 @@ Integer getRefAlleleFromMatrix(
   // previously defined?
   Integer refVar = varPosMatrix.get(variant, position)
   if(refVar == null) { // defined in input matrix?
-    if((inVarPosMatrix != null) &&
-       (refVar = inVarPosMatrix.get(variant, position))) {
+    if(processingIndividual &&
+       (refVar = varPosMatrix.get(variant, position))) {
         refVarPosMatrix.put(refVar, position, variant)
         varPosMatrix.put(variant, position, refVar)
     }
@@ -128,14 +131,14 @@ Integer getRefAlleleFromMatrix(
  * Processes a single line from the input.
  *
  * 
- * @param inVarPosMatrix Table containing the previous variant reference; use for consistency
+ * @param processingIndividual true if using previous variant reference (refernce alleles) for consistency
  * @return the last reference position (for use with insertions relative to reference)
  */
 List processLine( 
     Table<String, Integer, String> refAllelePosMatrix,
     Table<String, Integer, Integer> varPosMatrix,
     Table<Integer, Integer, String> refVarPosMatrix,
-    Table<String, Integer, Integer> inVarPosMatrix,
+    Boolean processingIndividual,
     String line,
     Integer prevRefPos,
     String prevVar) { 
@@ -171,7 +174,7 @@ List processLine(
   if(op == 'D') {
     // remove the old variant
     prevRefAllele = removeRefAlleleFromMatrix(varPosMatrix, refVarPosMatrix,
-                                              inVarPosMatrix, prevVar, prevRefPos)
+                                              prevVar, prevRefPos)
     if(prevRefAllele == null) {
       refPos = inRefPos.toInteger() // mark the starting point
       variant = ref
@@ -189,7 +192,7 @@ List processLine(
     variantType = 'I'
     // remove the old variant
     removeRefAlleleFromMatrix(varPosMatrix, refVarPosMatrix,
-                              inVarPosMatrix, prevVar, prevRefPos)
+                              prevVar, prevRefPos)
   } else if(op == 'M') { // match or mismatch
     refPos = inRefPos.toInteger() // mark the starting point
     retRefPos = refPos
@@ -204,19 +207,22 @@ List processLine(
 
   // find or create in varPosMatrix and refVarPosMatrix
   Integer refAllele = getRefAlleleFromMatrix(varPosMatrix, refVarPosMatrix,
-                                             inVarPosMatrix, variant, refPos)
-  variant = "${refAllele}/${variant}/${variantType}" // (e.g., 1/A/M, 2/AA/I, 3/AA/D)
+                                             processingIndividual, variant, refPos)
+  String refString = refAllele.toString()
+  if(!processingIndividual) { // making the reference matrix
+    refString = "${refAllele}/${variant}/${variantType}" // (e.g., 1/A/M, 2/AA/I, 3/AA/D)
+  } 
   if((debugging <= 2) && (variantType != null)) {
-    err.println "processLine: adding ${readName} ${refPos} ${variant}"
+    err.println "processLine: adding ${readName} ${refPos} ${refString} (${variant})"
   }
-
-  refAllelePosMatrix.put(readName, refPos, variant)
+  refAllelePosMatrix.put(readName, refPos, refString)
   return [retRefPos, variant]
 } // processLine
 
 /**
  * Runs the given process closure on each line of the given file.
  *
+ * @param processingIndividual false if input is reference alleles (without -p), true if individual reads (with -p)
  * @process Closure to run on each line of input file
  * @return the total number of lines processed.
  */
@@ -224,15 +230,17 @@ Integer processInputFile(file,
                          Table<String, Integer, String> refAllelePosMatrix,
                          Table<String, Integer, Integer> varPosMatrix,
                          Table<Integer, Integer, String> refVarPosMatrix,
-                         Table<String, Integer, Integer> inVarPosMatrix) {
+                         boolean processingIndividual) {
   Reader reader = new BufferedReader( file )
   Integer previousPos = 1 // 1-based reference
   String previousVar = ""
   lineCount = 0
+  err.println "reading allele file ..."
+
   reader.eachLine { line ->
     (previousPos, previousVar) = processLine(refAllelePosMatrix,
                                              varPosMatrix, refVarPosMatrix,
-                                             inVarPosMatrix, line,
+                                             processingIndividual, line,
                                              previousPos, previousVar)
     lineCount++
   }
@@ -461,39 +469,45 @@ void main () {
   File vInFile // reference variant file (optional; null if not present)
   FileWriter outFile
   (inFile, outFile, vInFile) = handleArgs(args)  
-  err.println "loading input file ..."
 
-  // hash variant references per read and position
+  // hash variant IDs per read and position
   // Table<read, position, ref variant> (e.g., <2DL4*00101, 102, 1>)
   HashBasedTable<String, Integer, String> refAllelePosMatrix = HashBasedTable.create()
-  // hash variants references per variant and position
+  // hash variants IDs per variant and position
   // Table<variant, position, ref variant> (e.g., <A, 102, 1>)
   Table<String, Integer, Integer> varPosMatrix = HashBasedTable.create()
-  // hash variants per variant reference and position
+  // hash variants DNA sequences per variant ID and position
   // Table<ref variant, position, variant> (e.g., <1, 102, A>)
   Table<Integer, Integer, String> refVarPosMatrix = HashBasedTable.create()
 
   // load a variant map; use for consistent variant references
   // input variant position matrix
-  Table<String, Integer, Integer> inVarPosMatrix = null
+  Boolean processingIndividual = false
   if(vInFile != null) {
-    (refAllelePosMatrix, varPosMatrix, refVarPosMatrix) =
+    err.println "loading reference allele file ..."
+    HashBasedTable<String, Integer, String> oldRefAllelePosMatrix =
+      HashBasedTable.create()
+    (oldRefAllelePosMatrix, varPosMatrix, refVarPosMatrix) =
       io.loadVariantMatrix(new FileReader(vInFile))
+    processingIndividual = true
+    err.println "${oldRefAllelePosMatrix.rowKeySet().size()} reference alleles"
   }
-
+  if(debugging < 2) { 
+    err.println refAllelePosMatrix
+  }
   readCount =
     processInputFile(
       inFile
       , refAllelePosMatrix
       , varPosMatrix
       , refVarPosMatrix
-      , inVarPosMatrix
+      , processingIndividual
     )
   err.println "done with reads"
 
   if ( debugging <= 3 ) {
     err.println refAllelePosMatrix.rowKeySet().size() +
-        " reads or reference alleles"
+      " reads or reference alleles"
     err.println refAllelePosMatrix.columnKeySet().size() + " variant positions"
   }
 
