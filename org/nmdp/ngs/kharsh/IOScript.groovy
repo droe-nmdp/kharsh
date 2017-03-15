@@ -15,7 +15,7 @@ import org.nmdp.research.bio.util.CsvFileReader
 import java.io.*;
 
 class IOScript {
-    static Integer debugging = 1
+    static Integer debugging = 3 // TRACE=1, DEBUG=2, INFO=3
     static err = System.err
 
     /*
@@ -268,15 +268,16 @@ class IOScript {
                     return
                 }
                 String rv, var, type
-                if(debugging <= 2) { 
-                    err.println "loadVariantMatrix: cell=${cell}"
-                }
                 (rv, var, type) = cell.split('/')
                 Integer refVar = rv.toInteger()
                 Integer position = positions[i]
+                if(debugging <= 2) { 
+                    err.println "loadVariantMatrix: cell=${cell}"
+                    err.println "loadVariantMatrix: rv=${rv}, var=${var}, type=${type}"
+                }
                 refVarPosMatrix.put(refVar, position, var)
                 varPosMatrix.put(var, position, refVar)
-                refAllelePosMatrix.put(read, position, var)
+                refAllelePosMatrix.put(read, position, rv)
             }
         } // each line
 
@@ -307,6 +308,9 @@ class IOScript {
         def rowContent = { seq, read ->
             vout.print "${read}" // row header
             Map columnMap = refAllelePosMatrix.row(read)
+            if ( debugging <= 2 ) {
+                err.println "saveVariantMatrix: columnMap=" + columnMap
+            }
             refAllelePosMatrix.columnKeySet().sort().each { pos ->
                 String val = columnMap[pos]
                 val = val ? val : ""
